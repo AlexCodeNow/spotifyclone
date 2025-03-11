@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { FaPlay, FaPause, FaHeart, FaRegHeart } from 'react-icons/fa';
 import { usePlayerStore, Track } from '@/stores/player-store';
@@ -178,14 +177,29 @@ export default function TrackList({
                 </td>
                 <td className="py-3">
                   <div className="flex items-center">
-                    <div className="h-10 w-10 mr-3 flex-shrink-0">
-                      <Image
-                        src={track.album.images[0]?.url || '/placeholder-album.png'}
-                        alt={track.album.name}
-                        width={40}
-                        height={40}
-                        className="rounded-sm"
-                      />
+                    <div className="h-10 w-10 mr-3 flex-shrink-0 bg-neutral-800 rounded-sm flex items-center justify-center">
+                      {track.album?.images?.[0]?.url ? (
+                        <img
+                          src={track.album.images[0].url}
+                          alt={track.album?.name || track.name}
+                          className="w-10 h-10 rounded-sm"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const parent = e.currentTarget.parentElement;
+                            if (parent) {
+                              parent.innerHTML = `
+                                <div class="flex items-center justify-center w-full h-full text-xs text-gray-400">
+                                  ${track.name.substring(0, 1).toUpperCase()}
+                                </div>
+                              `;
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="text-xs text-gray-400">
+                          {track.name.substring(0, 1).toUpperCase()}
+                        </div>
+                      )}
                     </div>
                     <div className="overflow-hidden">
                       <div className={`truncate font-medium ${isPlaying ? 'text-green-500' : 'text-white'}`}>
@@ -208,12 +222,19 @@ export default function TrackList({
                     </div>
                   </td>
                 )}
-                {showAlbum && (
+                {showAlbum && track.album && (
                   <td className="py-3">
                     <div className="truncate text-gray-400 hover:text-white">
                       <Link href={`/album/${track.album.id}`} className="hover:underline">
                         {track.album.name}
                       </Link>
+                    </div>
+                  </td>
+                )}
+                {showAlbum && !track.album && (
+                  <td className="py-3">
+                    <div className="truncate text-gray-400">
+                      -
                     </div>
                   </td>
                 )}
