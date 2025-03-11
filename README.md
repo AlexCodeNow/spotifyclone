@@ -10,7 +10,6 @@ Un clon del reproductor de música Spotify desarrollado con Next.js y la API ofi
   - Playlists destacadas
   - Nuevos lanzamientos
   - Recomendaciones basadas en tus artistas favoritos
-  - Historial de reproducción reciente
 - **Gestión de playlists** con posibilidad de crear, editar y personalizar tus propias playlists
 - **Búsqueda avanzada** de canciones, artistas, álbumes y playlists
 - **Interfaz responsive** que se adapta a diferentes tamaños de pantalla
