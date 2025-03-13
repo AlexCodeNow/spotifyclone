@@ -45,7 +45,7 @@ export default function LoginPage() {
 
         <button
           onClick={handleLogin}
-          className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-full transition duration-200"
+          className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-full transition duration-200 cursor-pointer"
         >
           Log in with Spotify
         </button>
