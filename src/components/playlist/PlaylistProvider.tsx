@@ -69,7 +69,8 @@ export function PlaylistProvider({ children }: PlaylistProviderProps) {
       
       <CreatePlaylistModal 
         isOpen={isCreateModalOpen} 
-        onClose={() => setIsCreateModalOpen(false)} 
+        onClose={() => setIsCreateModalOpen(false)}
+        onPlaylistCreated={handlePlaylistUpdated}
       />
       
       <EditPlaylistModal 

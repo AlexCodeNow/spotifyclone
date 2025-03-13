@@ -18,10 +18,15 @@ spotifyApi.interceptors.request.use(
     const { accessToken, refreshToken, expiresAt } = useAuthStore.getState();
     
     if (!accessToken) {
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
       return Promise.reject(new Error('No access token available'));
     }
     
-    if (expiresAt && Date.now() > expiresAt && refreshToken) {
+    const isExpiringSoon = expiresAt && (expiresAt - Date.now() < 300000);
+    
+    if ((isExpiringSoon || (expiresAt && Date.now() > expiresAt)) && refreshToken) {
       try {
         const newTokens = await refreshAccessToken(refreshToken);
         useAuthStore.getState().setTokens(
@@ -33,6 +38,9 @@ spotifyApi.interceptors.request.use(
       } catch (error) {
         console.error('Error refreshing token:', error);
         useAuthStore.getState().clearAuth();
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
         return Promise.reject(new Error('Failed to refresh token'));
       }
     } else {
@@ -219,5 +227,10 @@ export const spotifyApiHelpers = {
   getPlaylistDetails: async (playlistId: string) => {
     const response = await spotifyApi.get(`/playlists/${playlistId}`);
     return response.data;
-  }
+  },
+
+  deletePlaylist: async (playlistId: string) => {
+    const response = await spotifyApi.delete(`/playlists/${playlistId}/followers`);
+    return response.status === 200;
+  },
 };

@@ -22,11 +22,12 @@ interface AuthState {
   setUser: (user: User) => void;
   clearAuth: () => void;
   setIsLoading: (isLoading: boolean) => void;
+  checkAuth: () => boolean;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       accessToken: null,
       refreshToken: null,
       expiresAt: null,
@@ -65,6 +66,21 @@ export const useAuthStore = create<AuthState>()(
       
       setIsLoading: (isLoading) => {
         set({ isLoading });
+      },
+      
+      checkAuth: () => {
+        const state = get();
+        
+        if (!state.accessToken) {
+          return false;
+        }
+        
+        if (state.expiresAt && Date.now() > state.expiresAt && !state.refreshToken) {
+          get().clearAuth();
+          return false;
+        }
+        
+        return true;
       }
     }),
     {

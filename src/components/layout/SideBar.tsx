@@ -26,6 +26,11 @@ export default function Sidebar({ currentPath }: { currentPath: string }) {
   const [userPlaylists, setUserPlaylists] = useState<PlaylistType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activePlaylistMenu, setActivePlaylistMenu] = useState<string | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{show: boolean, playlistId: string | null, playlistName: string}>({
+    show: false,
+    playlistId: null,
+    playlistName: ''
+  });
   
   const { user } = useAuthStore();
   const { openCreatePlaylistModal, openEditPlaylistModal } = usePlaylist();
@@ -43,7 +48,17 @@ export default function Sidebar({ currentPath }: { currentPath: string }) {
   };
   
   useEffect(() => {
+    const handlePlaylistUpdate = () => {
+      refreshPlaylists();
+    };
+    
+    window.addEventListener('playlist-updated', handlePlaylistUpdate);
+    
     refreshPlaylists();
+    
+    return () => {
+      window.removeEventListener('playlist-updated', handlePlaylistUpdate);
+    };
   }, []);
   
   useEffect(() => {
@@ -64,9 +79,6 @@ export default function Sidebar({ currentPath }: { currentPath: string }) {
   
   const handleCreatePlaylist = () => {
     openCreatePlaylistModal();
-    setTimeout(() => {
-      refreshPlaylists();
-    }, 2000);
   };
   
   const togglePlaylistMenu = (playlistId: string) => {
@@ -76,9 +88,39 @@ export default function Sidebar({ currentPath }: { currentPath: string }) {
   const handleEditPlaylist = (playlistId: string) => {
     openEditPlaylistModal(playlistId);
     setActivePlaylistMenu(null);
-    setTimeout(() => {
-      refreshPlaylists();
-    }, 2000);
+  };
+  
+  const handleDeletePlaylist = (playlistId: string, playlistName: string) => {
+    setDeleteConfirmation({
+      show: true,
+      playlistId,
+      playlistName
+    });
+    setActivePlaylistMenu(null);
+  };
+  
+  const confirmDeletePlaylist = async () => {
+    if (!deleteConfirmation.playlistId) return;
+    
+    try {
+      const success = await spotifyApiHelpers.deletePlaylist(deleteConfirmation.playlistId);
+      
+      if (success) {
+        refreshPlaylists();
+        
+        window.dispatchEvent(new Event('playlist-updated'));
+      } else {
+        console.error('Error al eliminar la playlist');
+      }
+    } catch (error) {
+      console.error('Error eliminando playlist:', error);
+    } finally {
+      setDeleteConfirmation({
+        show: false,
+        playlistId: null,
+        playlistName: ''
+      });
+    }
   };
   
   const navItems = [
@@ -181,6 +223,13 @@ export default function Sidebar({ currentPath }: { currentPath: string }) {
                     >
                       Editar detalles
                     </button>
+                    <div className="border-t border-gray-700 my-1"></div>
+                    <button 
+                      className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-neutral-700"
+                      onClick={() => handleDeletePlaylist(playlist.id, playlist.name)}
+                    >
+                      Eliminar playlist
+                    </button>
                   </div>
                 )}
               </li>
@@ -210,6 +259,34 @@ export default function Sidebar({ currentPath }: { currentPath: string }) {
               {user.display_name}
             </span>
           </Link>
+        </div>
+      )}
+      
+      {deleteConfirmation.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+          <div className="bg-neutral-900 rounded-lg w-full max-w-md p-6 shadow-xl">
+            <h3 className="text-xl font-bold mb-4">¿Eliminar playlist?</h3>
+            <p className="text-gray-300 mb-2">
+              ¿Estás seguro que quieres eliminar la playlist <span className="font-semibold">{deleteConfirmation.playlistName}</span>?
+            </p>
+            <p className="text-gray-400 text-sm mb-6">
+              Esta acción no se puede deshacer. La playlist será eliminada de tu biblioteca.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setDeleteConfirmation({ show: false, playlistId: null, playlistName: '' })}
+                className="px-4 py-2 rounded-full border border-gray-600 text-white hover:border-white transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDeletePlaylist}
+                className="px-6 py-2 rounded-full bg-red-600 text-white font-medium hover:bg-red-700 transition-colors"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

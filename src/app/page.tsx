@@ -6,17 +6,19 @@ import { useAuthStore } from '@/stores/auth-store';
 
 export default function RootPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { isAuthenticated, isLoading, checkAuth } = useAuthStore();
   
   useEffect(() => {
+    const isAuth = checkAuth();
+    
     if (!isLoading) {
-      if (isAuthenticated) {
+      if (isAuth) {
         router.push('/home');
       } else {
         router.push('/login');
       }
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router, checkAuth]);
   
   return (
     <div className="flex items-center justify-center min-h-screen bg-black">

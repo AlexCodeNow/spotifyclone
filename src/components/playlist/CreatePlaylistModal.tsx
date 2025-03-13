@@ -10,9 +10,10 @@ import { useNotificationStore } from '@/components/ui/Notification';
 interface CreatePlaylistModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onPlaylistCreated?: () => void;
 }
 
-export default function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistModalProps) {
+export default function CreatePlaylistModal({ isOpen, onClose, onPlaylistCreated }: CreatePlaylistModalProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(true);
@@ -115,6 +116,12 @@ export default function CreatePlaylistModal({ isOpen, onClose }: CreatePlaylistM
       }
       
       showNotification('success', 'Playlist creada con éxito!', 3000);
+      
+      if (onPlaylistCreated) {
+        onPlaylistCreated();
+      }
+      
+      window.dispatchEvent(new Event('playlist-updated'));
       
       onClose();
       router.push(`/playlist/${playlistData.id}`);
